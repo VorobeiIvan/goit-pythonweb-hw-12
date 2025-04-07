@@ -27,9 +27,9 @@ if [ "$1" = "pytest" ]; then
 fi
 
 # Запуск сервера документації (у фоновому режимі)
-if [ -d "docs/_build/html" ]; then
+if [ -d "docs/build/html" ]; then
     echo "Starting Sphinx documentation server on port 8080..."
-    python3 -m http.server 8080 --directory docs/_build/html &
+    python3 -m http.server 8080 --directory docs/build/html &
 else
     echo "Documentation not found. Skipping documentation server."
     echo "To generate documentation, run: 'make html' in the 'docs' directory."

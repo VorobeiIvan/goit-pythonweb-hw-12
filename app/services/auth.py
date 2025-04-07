@@ -97,3 +97,16 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     logger.info("Access token created successfully.")
     return token
+
+
+def hash_password(password: str) -> str:
+    """
+    Hashes a plain text password.
+
+    Args:
+        password (str): The plain text password.
+
+    Returns:
+        str: The hashed password.
+    """
+    return pwd_context.hash(password)
