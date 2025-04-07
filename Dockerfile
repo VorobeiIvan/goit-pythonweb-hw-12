@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
 # Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+# Set PYTHONPATH
+ENV PYTHONPATH=/app
 
 # Copy application files
 COPY . .

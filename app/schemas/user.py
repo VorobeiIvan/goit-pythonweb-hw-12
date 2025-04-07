@@ -2,9 +2,10 @@ from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from enum import Enum
 import logging
+
 
 # Налаштування логування
 logger = logging.getLogger(__name__)

@@ -35,7 +35,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
+      
   app:
     build: .
     container_name: fastapi_app
@@ -48,6 +48,7 @@ services:
     env_file:
       - .env
     environment:
+      PYTHONPATH: /app  # Додано PYTHONPATH
       DATABASE_URL: ${DATABASE_URL}
     ports:
       - "8000:8000"
