@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import date
 import logging
 
-# Налаштування логування
+# Configure logging for the module
 logger = logging.getLogger(__name__)
 
 
@@ -61,6 +61,7 @@ class ContactCreate(BaseModel):
         Raises:
             ValueError: If the phone number format is invalid.
         """
+        # Ensure the phone number contains only digits and is between 7 and 15 characters long
         if not value.isdigit() or len(value) < 7 or len(value) > 15:
             logger.warning(f"Invalid phone number: {value}")
             raise ValueError(
@@ -81,4 +82,4 @@ class ContactResponse(ContactCreate):
     id: int
 
     class ConfigDict:
-        from_attributes = True
+        from_attributes = True  # Enable population of model fields from attributes

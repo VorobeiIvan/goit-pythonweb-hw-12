@@ -1,29 +1,29 @@
 import os
 import sys
 
-# Додати шлях до кореневої директорії проекту
+# Add the path to the root directory of the project
 sys.path.insert(0, os.path.abspath("../../"))
 
-# Основні налаштування
-project = "FastAPI Contacts Management API"
-copyright = "2025, Ivan Vorobei"
-author = "Ivan Vorobei"
+# Project metadata
+project = "FastAPI Contacts Management API"  # The name of the project
+copyright = "2025, Ivan Vorobei"  # Copyright information
+author = "Ivan Vorobei"  # Author of the project
 
-# Розширення Sphinx
+# Sphinx extensions to be used
 extensions = [
-    "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon",
-    "sphinx.ext.viewcode",
-    "sphinx.ext.todo",
-    "sphinxcontrib.httpdomain",
+    "sphinx.ext.autodoc",  # Automatically generate documentation from docstrings
+    "sphinx.ext.napoleon",  # Support for Google and NumPy style docstrings
+    "sphinx.ext.viewcode",  # Add links to highlighted source code
+    "sphinx.ext.todo",  # Support for TODO directives in documentation
+    "sphinxcontrib.httpdomain",  # Add support for documenting HTTP APIs
 ]
 
-# Тема для HTML
-html_theme = "sphinx_rtd_theme"
+# HTML theme for the documentation
+html_theme = "sphinx_rtd_theme"  # Use the Read the Docs theme for HTML output
 
-# Шаблони та виключення
-templates_path = ["_templates"]
-exclude_patterns = []
+# Paths for templates and files to exclude
+templates_path = ["_templates"]  # Path to custom templates
+exclude_patterns = []  # Patterns to exclude from the documentation build
 
-# Увімкнення TODO
-todo_include_todos = True
+# Enable TODO directives in the output
+todo_include_todos = True  # Include TODO items in the generated documentation

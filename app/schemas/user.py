@@ -6,23 +6,35 @@ from sqlalchemy.orm import declarative_base
 from enum import Enum
 import logging
 
-
-# Налаштування логування
+# Configure logging
 logger = logging.getLogger(__name__)
 
+# Base class for SQLAlchemy models
 Base = declarative_base()
 
 
 class User(Base):
+    """
+    SQLAlchemy model representing a user in the database.
+    """
+
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    is_active = Column(Boolean, default=True)
-    is_verified = Column(Boolean, default=False)
-    role = Column(String, default="user")
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    id = Column(Integer, primary_key=True, index=True)  # Unique identifier for the user
+    email = Column(
+        String, unique=True, index=True, nullable=False
+    )  # User's email address
+    hashed_password = Column(
+        String, nullable=False
+    )  # Hashed password for authentication
+    is_active = Column(Boolean, default=True)  # Indicates if the user is active
+    is_verified = Column(
+        Boolean, default=False
+    )  # Indicates if the user's email is verified
+    role = Column(String, default="user")  # Role of the user (e.g., user, admin)
+    created_at = Column(
+        DateTime, default=datetime.now(timezone.utc)
+    )  # Timestamp of user creation
 
 
 class UserRole(str, Enum):
@@ -30,36 +42,38 @@ class UserRole(str, Enum):
     Enumeration of available user roles.
     """
 
-    USER = "user"
-    ADMIN = "admin"
+    USER = "user"  # Regular user role
+    ADMIN = "admin"  # Administrator role
 
 
 class UserBase(BaseModel):
     """
-    UserBase schema defines the base structure for user-related data.
+    Base schema for user-related data.
+    Defines common fields for user operations.
     """
 
-    email: EmailStr
-    is_active: Optional[bool] = True
-    is_verified: Optional[bool] = False
-    role: Optional[UserRole] = UserRole.USER
+    email: EmailStr  # User's email address
+    is_active: Optional[bool] = True  # Indicates if the user is active
+    is_verified: Optional[bool] = False  # Indicates if the user's email is verified
+    role: Optional[UserRole] = UserRole.USER  # Role of the user
 
     class ConfigDict:
-        from_attributes = True
-        arbitrary_types_allowed = True  # Дозволяє кастомні типи
+        from_attributes = True  # Allows mapping from ORM models
+        arbitrary_types_allowed = True  # Allows custom types
 
 
 class UserCreate(UserBase):
     """
-    UserCreate schema extends UserBase and adds a password field for creating new users.
+    Schema for creating a new user.
+    Extends UserBase and adds a password field.
     """
 
-    password: str
+    password: str  # Plaintext password for the new user
 
     @field_validator("password")
     def validate_password(cls, value: str) -> str:
         """
-        Validate the password to ensure it meets security requirements.
+        Validates the password to ensure it meets security requirements.
 
         Args:
             value (str): The password to validate.
@@ -85,21 +99,23 @@ class UserCreate(UserBase):
 
 class Token(BaseModel):
     """
-    Token schema defines the structure for authentication tokens.
+    Schema for authentication tokens.
+    Defines the structure of the token data.
     """
 
-    access_token: str
-    token_type: str
+    access_token: str  # The access token string
+    token_type: str  # The type of token (e.g., Bearer)
 
 
 class UserResponse(BaseModel):
     """
-    UserResponse schema defines the structure for user response data.
+    Schema for user response data.
+    Defines the structure of user data returned in API responses.
     """
 
-    id: int
-    email: str
-    is_verified: bool
+    id: int  # Unique identifier for the user
+    email: str  # User's email address
+    is_verified: bool  # Indicates if the user's email is verified
 
     class ConfigDict:
-        from_attributes = True
+        from_attributes = True  # Allows mapping from ORM models

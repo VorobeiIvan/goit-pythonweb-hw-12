@@ -1,62 +1,71 @@
+# Docker Compose file for setting up a multi-service application with PostgreSQL, Redis, and FastAPI.
+
 services:
   db:
+    # PostgreSQL database service
     image: postgres:15
     container_name: postgres_db
     restart: always
     env_file:
-      - .env
+      - .env  # Load environment variables from .env file
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}  # Database username
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Database password
+      POSTGRES_DB: ${POSTGRES_DB}  # Database name
     ports:
-      - "5432:5432"
+      - "5432:5432"  # Expose PostgreSQL on port 5432
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data  # Persist database data
     healthcheck:
+      # Healthcheck to ensure PostgreSQL is ready
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
+    # Redis cache service
     image: redis:7
     container_name: redis_cache
     restart: always
     ports:
-      - "6379:6379"
+      - "6379:6379"  # Expose Redis on port 6379
     env_file:
-      - .env
+      - .env  # Load environment variables from .env file
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+      REDIS_PASSWORD: ${REDIS_PASSWORD}  # Redis password
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]  # Start Redis with password protection
     healthcheck:
+      # Healthcheck to ensure Redis is ready
       test: ["CMD-SHELL", "redis-cli -a \"${REDIS_PASSWORD}\" ping"]
       interval: 10s
       timeout: 5s
       retries: 5
       
   app:
-    build: .
+    # FastAPI application service
+    build: .  # Build the application from the current directory
     container_name: fastapi_app
     restart: always
     depends_on:
+      # Ensure the app starts only after db and redis are healthy
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     env_file:
-      - .env
+      - .env  # Load environment variables from .env file
     environment:
-      PYTHONPATH: /app  # Додано PYTHONPATH
-      DATABASE_URL: ${DATABASE_URL}
+      PYTHONPATH: /app  # Set PYTHONPATH for the application
+      DATABASE_URL: ${DATABASE_URL}  # Database connection URL
     ports:
-      - "8000:8000"
-      - "8080:8080"
+      - "8000:8000"  # Expose FastAPI on port 8000
+      - "8080:8080"  # Additional port for other purposes
     volumes:
-      - .:/app
-      - ./docs:/app/docs
+      - .:/app  # Mount the current directory to /app in the container
+      - ./docs:/app/docs  # Mount the docs directory
     command:
+      # Command to run the FastAPI application with Uvicorn
       - uvicorn
       - main:app
       - --host
@@ -65,12 +74,13 @@ services:
       - "8000"
       - --reload
     healthcheck:
+      # Healthcheck to ensure FastAPI is ready
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-
 volumes:
   postgres_data:
+    # Volume for persisting PostgreSQL data
     driver: local

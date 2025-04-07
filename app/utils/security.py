@@ -4,10 +4,10 @@ from jose import jwt, JWTError
 from app.config import settings
 import logging
 
-# Налаштування логування
+# Configure logging
 logger = logging.getLogger(__name__)
 
-# Ініціалізація контексту для хешування паролів
+# Initialize the password hashing context with bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -33,17 +33,25 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         hashed_password (str): The hashed password to compare against.
 
     Returns:
-        bool: True if the password matches, False otherwise.
+        bool: True if the password matches the hash, False otherwise.
     """
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def create_access_token(data: dict) -> str:
     """
-    Create an access token with a shorter expiration time (e.g. 15 minutes).
+    Create an access token with a short expiration time (e.g., 15 minutes).
+
+    Args:
+        data (dict): The data to encode in the token.
+
+    Returns:
+        str: The encoded JWT access token.
     """
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=15)  # Access токен діє 15 хвилин
+    expire = datetime.utcnow() + timedelta(
+        minutes=15
+    )  # Access token valid for 15 minutes
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
@@ -54,7 +62,13 @@ def create_access_token(data: dict) -> str:
 
 def verify_access_token(token: str) -> str:
     """
-    Verify the access token and return the email if valid.
+    Verify the access token and extract the email if valid.
+
+    Args:
+        token (str): The JWT access token to verify.
+
+    Returns:
+        str: The email extracted from the token if valid, None otherwise.
     """
     try:
         payload = jwt.decode(
@@ -73,10 +87,16 @@ def verify_access_token(token: str) -> str:
 
 def create_refresh_token(data: dict) -> str:
     """
-    Create a refresh token with a longer expiration time (1 day).
+    Create a refresh token with a longer expiration time (e.g., 1 day).
+
+    Args:
+        data (dict): The data to encode in the token.
+
+    Returns:
+        str: The encoded JWT refresh token.
     """
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=1)  # Refresh токен діє 1 день
+    expire = datetime.utcnow() + timedelta(days=1)  # Refresh token valid for 1 day
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
@@ -87,7 +107,13 @@ def create_refresh_token(data: dict) -> str:
 
 def verify_refresh_token(token: str) -> str:
     """
-    Verify the refresh token and return the email if valid.
+    Verify the refresh token and extract the email if valid.
+
+    Args:
+        token (str): The JWT refresh token to verify.
+
+    Returns:
+        str: The email extracted from the token if valid, None otherwise.
     """
     try:
         payload = jwt.decode(

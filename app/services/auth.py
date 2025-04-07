@@ -6,30 +6,30 @@ from sqlalchemy.orm import Session
 import os
 import logging
 
-# Налаштування логування
+# Logging configuration
 logger = logging.getLogger(__name__)
 
-# Password hashing configuration
+# Password hashing configuration using bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT configuration
 SECRET_KEY = os.getenv(
     "SECRET_KEY", "default_secret_key"
-)  # Використовуйте значення з .env
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+)  # Use the value from .env or a default value
+ALGORITHM = "HS256"  # Algorithm used for JWT encoding
+ACCESS_TOKEN_EXPIRE_MINUTES = 30  # Default token expiration time in minutes
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
-    Verify a plain password against a hashed password.
+    Verify if a plain text password matches the hashed password.
 
     Args:
-        plain_password (str): Plain text password to verify.
-        hashed_password (str): Hashed password to verify against.
+        plain_password (str): The plain text password to verify.
+        hashed_password (str): The hashed password to compare against.
 
     Returns:
-        bool: True if passwords match, False otherwise.
+        bool: True if the passwords match, False otherwise.
     """
     result = pwd_context.verify(plain_password, hashed_password)
     if result:
@@ -41,13 +41,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     """
-    Hash a password.
+    Hash a plain text password.
 
     Args:
-        password (str): Plain text password to hash.
+        password (str): The plain text password to hash.
 
     Returns:
-        str: Hashed password.
+        str: The hashed password.
     """
     hashed_password = pwd_context.hash(password)
     logger.info("Password hashed successfully.")
@@ -56,15 +56,16 @@ def get_password_hash(password: str) -> str:
 
 def authenticate_user(db: Session, email: str, password: str) -> User:
     """
-    Authenticate a user with email and password.
+    Authenticate a user by verifying their email and password.
 
     Args:
         db (Session): The database session.
-        email (str): The user's email.
-        password (str): The user's password.
+        email (str): The user's email address.
+        password (str): The user's plain text password.
 
     Returns:
-        User: The authenticated user object if successful, None otherwise.
+        User: The authenticated user object if authentication is successful.
+        None: If authentication fails.
     """
     user = db.query(User).filter(User.email == email).first()
     if not user:
@@ -79,12 +80,12 @@ def authenticate_user(db: Session, email: str, password: str) -> User:
 
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     """
-    Generate a JSON Web Token (JWT) for authentication purposes.
+    Create a JSON Web Token (JWT) for user authentication.
 
     Args:
         data (dict): The payload data to include in the token.
         expires_delta (timedelta, optional): The duration for which the token
-            will remain valid. Defaults to 15 minutes.
+            will remain valid. Defaults to 30 minutes.
 
     Returns:
         str: The encoded JWT as a string.
@@ -101,10 +102,10 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
 
 def hash_password(password: str) -> str:
     """
-    Hashes a plain text password.
+    Hash a plain text password.
 
     Args:
-        password (str): The plain text password.
+        password (str): The plain text password to hash.
 
     Returns:
         str: The hashed password.

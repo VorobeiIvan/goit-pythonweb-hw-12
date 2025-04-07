@@ -7,7 +7,7 @@ from app.models.contacts import Contact
 from app.utils.dependencies import get_db, get_current_user
 import logging
 
-# Налаштування логування
+# Configure logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -20,7 +20,15 @@ def create_contact(
     current_user=Depends(get_current_user),
 ):
     """
-    Creates a new contact and associates it with the currently authenticated user.
+    Create a new contact and associate it with the currently authenticated user.
+
+    Args:
+        contact (ContactCreate): The contact data to create.
+        db (Session): The database session.
+        current_user: The currently authenticated user.
+
+    Returns:
+        ContactResponse: The created contact.
     """
     new_contact = Contact(**contact.dict(), owner_id=current_user.id)
     db.add(new_contact)
@@ -36,7 +44,14 @@ def get_contacts(
     current_user=Depends(get_current_user),
 ):
     """
-    Retrieves all contacts associated with the currently authenticated user.
+    Retrieve all contacts associated with the currently authenticated user.
+
+    Args:
+        db (Session): The database session.
+        current_user: The currently authenticated user.
+
+    Returns:
+        List[ContactResponse]: A list of contacts.
     """
     contacts = db.query(Contact).filter(Contact.owner_id == current_user.id).all()
     logger.info(f"Retrieved {len(contacts)} contacts for user {current_user.id}")
@@ -50,7 +65,18 @@ def get_contact_by_id(
     current_user=Depends(get_current_user),
 ):
     """
-    Retrieves a specific contact by its ID.
+    Retrieve a specific contact by its ID.
+
+    Args:
+        contact_id (int): The ID of the contact to retrieve.
+        db (Session): The database session.
+        current_user: The currently authenticated user.
+
+    Returns:
+        ContactResponse: The contact with the specified ID.
+
+    Raises:
+        HTTPException: If the contact is not found.
     """
     contact = (
         db.query(Contact)
@@ -72,7 +98,19 @@ def update_contact(
     current_user=Depends(get_current_user),
 ):
     """
-    Updates a specific contact by its ID.
+    Update a specific contact by its ID.
+
+    Args:
+        contact_id (int): The ID of the contact to update.
+        contact_data (ContactCreate): The updated contact data.
+        db (Session): The database session.
+        current_user: The currently authenticated user.
+
+    Returns:
+        ContactResponse: The updated contact.
+
+    Raises:
+        HTTPException: If the contact is not found.
     """
     contact = (
         db.query(Contact)
@@ -97,7 +135,18 @@ def delete_contact(
     current_user=Depends(get_current_user),
 ):
     """
-    Deletes a specific contact by its ID.
+    Delete a specific contact by its ID.
+
+    Args:
+        contact_id (int): The ID of the contact to delete.
+        db (Session): The database session.
+        current_user: The currently authenticated user.
+
+    Returns:
+        ContactResponse: The deleted contact.
+
+    Raises:
+        HTTPException: If the contact is not found.
     """
     contact = (
         db.query(Contact)
@@ -121,6 +170,14 @@ def search_contacts(
 ):
     """
     Search contacts by first name, last name, or email.
+
+    Args:
+        query (str): The search query.
+        db (Session): The database session.
+        current_user: The currently authenticated user.
+
+    Returns:
+        List[ContactResponse]: A list of contacts matching the search query.
     """
     contacts = (
         db.query(Contact)
@@ -132,6 +189,9 @@ def search_contacts(
         )
         .all()
     )
+    logger.info(
+        f"Search query '{query}' returned {len(contacts)} results for user {current_user.id}"
+    )
     return contacts
 
 
@@ -142,6 +202,13 @@ def get_upcoming_birthdays(
 ):
     """
     Get contacts with birthdays in the next 7 days.
+
+    Args:
+        db (Session): The database session.
+        current_user: The currently authenticated user.
+
+    Returns:
+        List[ContactResponse]: A list of contacts with upcoming birthdays.
     """
     today = date.today()
     next_week = today + timedelta(days=7)
@@ -152,5 +219,8 @@ def get_upcoming_birthdays(
             Contact.birthday.between(today, next_week),
         )
         .all()
+    )
+    logger.info(
+        f"Retrieved {len(contacts)} upcoming birthdays for user {current_user.id}"
     )
     return contacts

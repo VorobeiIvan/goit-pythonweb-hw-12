@@ -5,16 +5,19 @@ from jose import jwt, JWTError
 from app.database.database import SessionLocal
 from app.models.user import User
 from app.services.auth import SECRET_KEY, ALGORITHM
-from app.services.redis_cache import redis_client  # Імпорт клієнта Redis
+from app.services.redis_cache import redis_client  # Import Redis client
 import json
 
-# Налаштування логування
+# Configure logging
 logger = logging.getLogger(__name__)
 
 
 def get_db():
     """
-    Dependency to get a database session.
+    Dependency to provide a database session.
+
+    This function creates a new SQLAlchemy database session and ensures
+    it is properly closed after use.
 
     Yields:
         Session: A SQLAlchemy database session.
@@ -29,6 +32,10 @@ def get_db():
 def get_current_user(token: str, db: Session = Depends(get_db)) -> User:
     """
     Retrieve the current user based on the provided JWT token, with Redis caching.
+
+    This function decodes the JWT token to extract the user's email, checks if the user
+    is cached in Redis, and retrieves the user from the database if not found in the cache.
+    The user is then cached in Redis for future requests.
 
     Args:
         token (str): The JWT token provided by the client for authentication.
@@ -46,32 +53,31 @@ def get_current_user(token: str, db: Session = Depends(get_db)) -> User:
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        # Декодування токена
+        # Decode the JWT token
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email = payload.get("sub")
         if email is None:
             logger.warning("Token does not contain a valid email.")
             raise credentials_exception
 
-        # Перевірка користувача в кеші Redis
+        # Check if the user is cached in Redis
         cached_user = redis_client.get(email)
         if cached_user:
             logger.info(f"User {email} retrieved from cache.")
             user_data = json.loads(cached_user)
             return User(**user_data)
 
-        # Якщо користувача немає в кеші, отримуємо його з бази даних
+        # If the user is not in the cache, retrieve them from the database
         user = db.query(User).filter(User.email == email).first()
         if user is None:
             logger.warning(f"User with email {email} not found.")
             raise credentials_exception
 
-        # Збереження користувача в кеш Redis
-        redis_client.set(
-            email, json.dumps(user.__dict__), ex=1800
-        )  # Кешування на 30 хвилин
+        # Cache the user in Redis for 30 minutes
+        redis_client.set(email, json.dumps(user.__dict__), ex=1800)
         logger.info(f"User {email} cached successfully.")
         return user
     except JWTError as e:
+        # Handle JWT decoding errors
         logger.error(f"JWT decoding error: {e}")
         raise credentials_exception

@@ -1,12 +1,12 @@
 Modules
 =======
 
-.. automodule:: main
+.. automodule:: app.services.auth
    :members:
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: app.routers.auth
+.. automodule:: app.core.exception_handlers
    :members:
    :undoc-members:
    :show-inheritance:
@@ -16,7 +16,17 @@ Modules
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: app.services.cloudinary_service
+.. automodule:: app.database.database
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: app.config
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: main
    :members:
    :undoc-members:
    :show-inheritance:

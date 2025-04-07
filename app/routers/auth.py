@@ -17,9 +17,10 @@ from app.config import settings
 import logging
 import uuid
 
-# Налаштування логування
+# Configure logging
 logger = logging.getLogger(__name__)
 
+# Define the router for authentication-related endpoints
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
@@ -30,6 +31,13 @@ def login(
 ):
     """
     Authenticate a user and return an access token and refresh token.
+
+    Args:
+        form_data (OAuth2PasswordRequestForm): Form data containing username and password.
+        db (Session): Database session.
+
+    Returns:
+        dict: A dictionary containing access token, refresh token, and token type.
     """
     logger.info(f"Authentication attempt for username: {form_data.username}")
     user = authenticate_user(db, form_data.username, form_data.password)
@@ -37,12 +45,15 @@ def login(
         logger.warning(f"Authentication failed for username: {form_data.username}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
+    # Generate access and refresh tokens
     access_token = create_access_token(data={"sub": user.email})
     refresh_token = create_refresh_token(data={"sub": user.email})
-    redis_client.set(f"user:{user.email}", user.id, ex=3600)  # Кешування на 1 годину
+
+    # Cache user ID and refresh token in Redis
+    redis_client.set(f"user:{user.email}", user.id, ex=3600)  # Cache for 1 hour
     redis_client.set(
         f"refresh_token:{user.email}", refresh_token, ex=86400
-    )  # Кешування refresh токена на 24 години
+    )  # Cache refresh token for 24 hours
 
     logger.info(f"User {user.email} authenticated successfully. Tokens generated.")
     return {
@@ -59,6 +70,13 @@ def refresh_token(
 ):
     """
     Refresh the access token using a valid refresh token.
+
+    Args:
+        refresh_token (str): The refresh token provided by the user.
+        db (Session): Database session.
+
+    Returns:
+        dict: A dictionary containing the new access token and token type.
     """
     logger.info("Refresh token attempt.")
     email = verify_refresh_token(refresh_token)
@@ -66,6 +84,7 @@ def refresh_token(
         logger.warning("Invalid refresh token provided.")
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
+    # Generate a new access token
     access_token = create_access_token(data={"sub": email})
     logger.info(f"Access token refreshed successfully for user: {email}")
     return {"access_token": access_token, "token_type": "bearer"}
@@ -81,8 +100,9 @@ async def password_reset_request(email: str, db: Session = Depends(get_db)):
         db (Session): Database session.
 
     Returns:
-        dict: A success message.
+        dict: A success message indicating the reset link has been sent.
     """
+    # Check if the user exists in the database
     user = db.query(User).filter(User.email == email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -93,7 +113,7 @@ async def password_reset_request(email: str, db: Session = Depends(get_db)):
         f"password_reset:{reset_token}", user.email, ex=3600
     )  # Token valid for 1 hour
 
-    # Send reset email
+    # Send the reset email with the reset URL
     reset_url = f"{settings.BASE_URL}/auth/password-reset?token={reset_token}"
     await send_password_reset_email(email, reset_url)
 
@@ -111,12 +131,14 @@ async def password_reset(token: str, new_password: str, db: Session = Depends(ge
         db (Session): Database session.
 
     Returns:
-        dict: A success message.
+        dict: A success message indicating the password has been reset.
     """
+    # Retrieve the email associated with the reset token from Redis
     email = redis_client.get(f"password_reset:{token}")
     if not email:
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
 
+    # Find the user in the database
     user = db.query(User).filter(User.email == email.decode("utf-8")).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -125,7 +147,7 @@ async def password_reset(token: str, new_password: str, db: Session = Depends(ge
     user.password = hash_password(new_password)
     db.commit()
 
-    # Delete the token from Redis
+    # Delete the reset token from Redis
     redis_client.delete(f"password_reset:{token}")
 
     return {"message": "Password has been reset successfully."}

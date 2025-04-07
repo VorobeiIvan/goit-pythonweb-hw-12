@@ -21,8 +21,9 @@ router = APIRouter(
 @router.get("/", response_model=List[UserResponse], status_code=200)
 async def list_users():
     """
-    Повертає список користувачів (заглушка).
+    Returns a list of users (placeholder implementation).
     """
+    # Placeholder implementation for listing users.
     return []
 
 
@@ -30,13 +31,26 @@ async def list_users():
 @limiter.limit("5/minute")
 def register_user(request: Request, user: UserCreate, db: Session = Depends(get_db)):
     """
-    Register a new user.
+    Registers a new user.
+
+    Args:
+        request (Request): The HTTP request object.
+        user (UserCreate): The user data for registration.
+        db (Session): The database session dependency.
+
+    Returns:
+        UserResponse: The newly registered user.
+
+    Raises:
+        HTTPException: If a user with the same email already exists.
     """
+    # Check if the user already exists in the database.
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
         logger.warning(f"Registration failed: User {user.email} already exists.")
         raise HTTPException(status_code=409, detail="User already exists")
 
+    # Hash the user's password and create a new user record.
     hashed_password = get_password_hash(user.password)
     new_user = User(
         email=user.email,
@@ -59,7 +73,16 @@ def get_current_user_info(
     current_user=Depends(get_current_user),
 ):
     """
-    Get the current authenticated user's information.
+    Retrieves the current authenticated user's information.
+
+    Args:
+        request (Request): The HTTP request object.
+        db (Session): The database session dependency.
+        current_user: The currently authenticated user.
+
+    Returns:
+        UserResponse: The current user's information.
     """
+    # Log and return the current user's information.
     logger.info(f"Retrieved current user info: {current_user.email}")
     return current_user
