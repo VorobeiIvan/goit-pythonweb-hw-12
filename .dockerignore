@@ -1,0 +1,39 @@
+# Ігнорування всіх файлів, які не потрібні для збірки Docker-образу
+
+# Системні файли
+.idea
+.vscode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+*.log
+
+# Віртуальне середовище
+.venv/
+env/
+venv/
+
+# Git
+.git
+.gitignore
+
+# Тести та покриття
+tests/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Документація
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# Інші файли
+.env
+*.egg-info/
+dist/
+build/
