@@ -1,5 +1,5 @@
 import logging
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 from app.database.database import SessionLocal
@@ -7,6 +7,7 @@ from app.models.user import User
 from app.services.auth import SECRET_KEY, ALGORITHM
 from app.services.redis_cache import redis_client  # Import Redis client
 import json
+
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -81,3 +82,12 @@ def get_current_user(token: str, db: Session = Depends(get_db)) -> User:
         # Handle JWT decoding errors
         logger.error(f"JWT decoding error: {e}")
         raise credentials_exception
+
+
+def admin_required(current_user: User = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to perform this action.",
+        )
+    return current_user

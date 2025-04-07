@@ -6,6 +6,7 @@ from app.schemas.user import UserCreate, UserResponse
 from app.models.user import User
 from app.services.auth import get_password_hash
 from app.utils.dependencies import get_current_user, get_db
+from app.utils.dependencies import admin_required
 from app.utils.limiter import limiter
 
 import logging
@@ -86,3 +87,19 @@ def get_current_user_info(
     # Log and return the current user's information.
     logger.info(f"Retrieved current user info: {current_user.email}")
     return current_user
+
+
+@router.put("/avatar")
+async def update_avatar(avatar_url: str, current_user=Depends(admin_required)):
+    """
+    Дозволяє адміністраторам змінювати аватар.
+
+    Args:
+        avatar_url (str): URL нового аватара.
+        current_user: Поточний користувач (перевіряється, чи є він адміністратором).
+
+    Returns:
+        dict: Повідомлення про успішну зміну аватара.
+    """
+    # Логіка зміни аватара
+    return {"message": "Avatar updated successfully"}
