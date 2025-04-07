@@ -111,3 +111,23 @@ def hash_password(password: str) -> str:
         str: The hashed password.
     """
     return pwd_context.hash(password)
+
+
+def create_refresh_token(data: dict, expires_delta: timedelta = None) -> str:
+    """
+    Create a refresh token for user authentication.
+
+    Args:
+        data (dict): The payload data to include in the token.
+        expires_delta (timedelta, optional): The duration for which the token
+            will remain valid. Defaults to 7 days.
+
+    Returns:
+        str: The encoded JWT as a string.
+    """
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta or timedelta(days=7))
+    to_encode.update({"exp": expire})
+    token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    logger.info("Refresh token created successfully.")
+    return token

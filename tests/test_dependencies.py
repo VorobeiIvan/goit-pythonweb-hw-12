@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 from fastapi import HTTPException
 from app.utils.dependencies import get_current_user
 from app.models.user import User
+from app.services.auth import create_access_token
 import pytest
 
 
@@ -21,27 +22,16 @@ def test_get_current_user_not_found():
         assert exc_info.value.detail == "Invalid token"
 
 
-def test_get_db():
-    from sqlalchemy import create_engine
-    from sqlalchemy.orm import sessionmaker
-    from app.database.database import Base
+def test_get_current_user_from_cache():
+    mock_db = MagicMock()
+    mock_redis_client = MagicMock()
 
-    engine = create_engine("sqlite:///:memory:")
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    Base.metadata.create_all(bind=engine)
+    # Створення дійсного JWT токена
+    valid_token = create_access_token({"sub": "test@example.com"})
 
-    def override_get_db():
-        db = TestingSessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
+    # Мок Redis, щоб повернути кешованого користувача
+    mock_redis_client.get.return_value = '{"id": 1, "email": "test@example.com"}'
 
-    generator = override_get_db()
-    db = next(generator)
-    assert db is not None  # Check that the session is created
-
-    try:
-        next(generator)
-    except StopIteration:
-        pass
+    with patch("app.utils.dependencies.redis_client", mock_redis_client):
+        user = get_current_user(valid_token, db=mock_db)
+        assert user.email == "test@example.com"

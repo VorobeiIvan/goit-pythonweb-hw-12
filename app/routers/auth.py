@@ -7,7 +7,6 @@ from app.utils.security import create_refresh_token, verify_refresh_token
 from app.services.auth import (
     authenticate_user,
     create_access_token,
-    verify_password,
     hash_password,
 )
 from app.utils.dependencies import get_db
@@ -16,6 +15,7 @@ from app.services.email import send_password_reset_email
 from app.config import settings
 import logging
 import uuid
+
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -33,11 +33,14 @@ def login(
     Authenticate a user and return an access token and refresh token.
 
     Args:
-        form_data (OAuth2PasswordRequestForm): Form data containing username and password.
-        db (Session): Database session.
+        form_data (OAuth2PasswordRequestForm): The form data containing username and password.
+        db (Session): The database session dependency.
 
     Returns:
-        dict: A dictionary containing access token, refresh token, and token type.
+        dict: A dictionary containing the access token, refresh token, and token type.
+
+    Raises:
+        HTTPException: If authentication fails due to invalid credentials.
     """
     logger.info(f"Authentication attempt for username: {form_data.username}")
     user = authenticate_user(db, form_data.username, form_data.password)
@@ -73,10 +76,13 @@ def refresh_token(
 
     Args:
         refresh_token (str): The refresh token provided by the user.
-        db (Session): Database session.
+        db (Session): The database session dependency.
 
     Returns:
         dict: A dictionary containing the new access token and token type.
+
+    Raises:
+        HTTPException: If the refresh token is invalid or expired.
     """
     logger.info("Refresh token attempt.")
     email = verify_refresh_token(refresh_token)
@@ -96,24 +102,26 @@ async def password_reset_request(email: str, db: Session = Depends(get_db)):
     Request a password reset by sending a reset link to the user's email.
 
     Args:
-        email (str): The email address of the user requesting the reset.
-        db (Session): Database session.
+        email (str): The email address of the user requesting the password reset.
+        db (Session): The database session dependency.
 
     Returns:
-        dict: A success message indicating the reset link has been sent.
+        dict: A message indicating that the password reset link has been sent.
+
+    Raises:
+        HTTPException: If the user with the provided email is not found.
     """
-    # Check if the user exists in the database
     user = db.query(User).filter(User.email == email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Generate a unique reset token
+    # Generate a unique reset token and store it in Redis
     reset_token = str(uuid.uuid4())
     redis_client.set(
         f"password_reset:{reset_token}", user.email, ex=3600
     )  # Token valid for 1 hour
 
-    # Send the reset email with the reset URL
+    # Construct the password reset URL and send it via email
     reset_url = f"{settings.BASE_URL}/auth/password-reset?token={reset_token}"
     await send_password_reset_email(email, reset_url)
 
@@ -126,12 +134,15 @@ async def password_reset(token: str, new_password: str, db: Session = Depends(ge
     Reset the user's password using a valid reset token.
 
     Args:
-        token (str): The reset token sent to the user's email.
-        new_password (str): The new password for the user.
-        db (Session): Database session.
+        token (str): The password reset token provided by the user.
+        new_password (str): The new password to set for the user.
+        db (Session): The database session dependency.
 
     Returns:
-        dict: A success message indicating the password has been reset.
+        dict: A message indicating that the password has been reset successfully.
+
+    Raises:
+        HTTPException: If the reset token is invalid or expired, or if the user is not found.
     """
     # Retrieve the email associated with the reset token from Redis
     email = redis_client.get(f"password_reset:{token}")
@@ -143,11 +154,11 @@ async def password_reset(token: str, new_password: str, db: Session = Depends(ge
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    # Update the user's password
+    # Update the user's password and commit the changes
     user.password = hash_password(new_password)
     db.commit()
 
-    # Delete the reset token from Redis
+    # Remove the reset token from Redis
     redis_client.delete(f"password_reset:{token}")
 
     return {"message": "Password has been reset successfully."}

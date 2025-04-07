@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.routers import auth, contacts, users
+from app.routers.auth import router as auth_router
 import logging
 
 # Configure logging for the module
@@ -31,3 +32,8 @@ def add_routers(app: FastAPI):
     logger.info("Adding users router...")
     app.include_router(users.router, prefix="/users", tags=["Users"])
     logger.info("Users router added successfully.")
+
+    # Add the routers to the FastAPI application
+    logger.info("Adding all routers to the FastAPI application...")
+    app.include_router(auth_router)
+    logger.info("All routers added successfully.")
