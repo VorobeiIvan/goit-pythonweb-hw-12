@@ -5,6 +5,9 @@ from app.schemas.user import UserCreate, UserResponse, Token, UserRole
 def test_user_create_valid_data():
     """
     Test that a valid UserCreate instance is created successfully.
+    
+    This test verifies that when valid data is provided, a UserCreate object
+    is instantiated correctly with all attributes matching the input data.
     """
     valid_data = {
         "email": "test@example.com",
@@ -23,7 +26,10 @@ def test_user_create_valid_data():
 
 def test_user_create_invalid_password_too_short():
     """
-    Test that a password shorter than 8 characters raises a ValueError.
+    Test that a ValueError is raised for a password shorter than 8 characters.
+    
+    This test ensures that the password validation logic correctly identifies
+    and rejects passwords that do not meet the minimum length requirement.
     """
     invalid_data = {
         "email": "test@example.com",
@@ -37,7 +43,10 @@ def test_user_create_invalid_password_too_short():
 
 def test_user_create_invalid_password_no_digit():
     """
-    Test that a password without digits raises a ValueError.
+    Test that a ValueError is raised for a password without any digits.
+    
+    This test ensures that the password validation logic correctly identifies
+    and rejects passwords that do not contain at least one numeric character.
     """
     invalid_data = {
         "email": "test@example.com",
@@ -49,7 +58,10 @@ def test_user_create_invalid_password_no_digit():
 
 def test_user_create_invalid_password_no_letter():
     """
-    Test that a password without letters raises a ValueError.
+    Test that a ValueError is raised for a password without any letters.
+    
+    This test ensures that the password validation logic correctly identifies
+    and rejects passwords that do not contain at least one alphabetic character.
     """
     invalid_data = {
         "email": "test@example.com",
@@ -62,6 +74,9 @@ def test_user_create_invalid_password_no_letter():
 def test_user_response():
     """
     Test that a valid UserResponse instance is created successfully.
+    
+    This test verifies that when valid data is provided, a UserResponse object
+    is instantiated correctly with all attributes matching the input data.
     """
     valid_data = {
         "id": 1,
@@ -77,6 +92,9 @@ def test_user_response():
 def test_token():
     """
     Test that a valid Token instance is created successfully.
+    
+    This test verifies that when valid data is provided, a Token object
+    is instantiated correctly with all attributes matching the input data.
     """
     valid_data = {
         "access_token": "someaccesstoken",

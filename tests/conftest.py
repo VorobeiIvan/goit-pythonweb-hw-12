@@ -6,19 +6,23 @@ from app.models.user import User
 from main import app
 import pytest
 
-# Створення тестової бази даних SQLite у пам'яті
+# Create a test SQLite database in memory
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Створення таблиць у тестовій базі
+# Create tables in the test database
 Base.metadata.create_all(bind=engine)
 
 
-# Перевизначення залежності get_db
+# Override the get_db dependency to use the test database
 def override_get_db():
+    """
+    Provides a database session for testing purposes.
+    Ensures that the test database is used instead of the production database.
+    """
     db = TestingSessionLocal()
     try:
         yield db
@@ -26,20 +30,26 @@ def override_get_db():
         db.close()
 
 
-# Перевизначення залежностей FastAPI
+# Override FastAPI dependencies
 app.dependency_overrides[get_db] = override_get_db
 
 
-# Фікстура для очищення бази даних перед кожним тестом
+# Fixture to reset the database before each test
 @pytest.fixture(scope="function", autouse=True)
 def setup_test_database():
-    # Очищення таблиць перед кожним тестом
-    Base.metadata.drop_all(bind=engine)  # Видалення таблиць
-    Base.metadata.create_all(bind=engine)  # Заново створення таблиць
+    """
+    Resets the database by dropping and recreating all tables before each test.
+    Ensures a clean state for every test case.
+    """
+    # Drop all tables before each test
+    Base.metadata.drop_all(bind=engine)
+    # Recreate all tables before each test
+    Base.metadata.create_all(bind=engine)
 
 
+# Inspect the database and print the list of tables
 from sqlalchemy import inspect
 
 inspector = inspect(engine)
 tables = inspector.get_table_names()
-print("Таблиці в базі даних:", tables)
+print("Tables in the database:", tables)

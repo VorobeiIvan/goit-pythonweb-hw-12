@@ -11,7 +11,7 @@ def test_add_cors_middleware():
     app = FastAPI()
     add_middlewares(app)
 
-    # Перевіряємо, чи додано CORS middleware
+    # Check if CORS middleware is added to the application
     cors_middleware = next(
         (
             middleware
@@ -30,7 +30,7 @@ def test_add_slowapi_middleware():
     app = FastAPI()
     add_middlewares(app)
 
-    # Перевіряємо, чи додано SlowAPI middleware
+    # Check if SlowAPI middleware is added to the application
     slowapi_middleware = next(
         (
             middleware
@@ -44,12 +44,12 @@ def test_add_slowapi_middleware():
 
 def test_limiter_state():
     """
-    Test that the limiter is set in the application state.
+    Test that the rate limiter is set in the application state.
     """
     app = FastAPI()
     add_middlewares(app)
 
-    # Перевіряємо, чи встановлено limiter у стані додатка
+    # Check if the limiter is set in the application state
     assert hasattr(
         app.state, "limiter"
     ), "Limiter was not set in the application state."

@@ -1,39 +1,39 @@
-# Ігнорування всіх файлів, які не потрібні для збірки Docker-образу
+# Ignore all files that are not needed for building the Docker image
 
-# Системні файли
-.idea
-.vscode
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.DS_Store
-*.log
+# System files
+.idea                # JetBrains IDE project files
+.vscode              # Visual Studio Code project files
+__pycache__/         # Python bytecode cache directory
+*.pyc                # Compiled Python files
+*.pyo                # Optimized Python files
+*.pyd                # Windows Python DLL files
+.DS_Store            # macOS Finder metadata files
+*.log                # Log files
 
-# Віртуальне середовище
-.venv/
-env/
-venv/
+# Virtual environments
+.venv/               # Python virtual environment directory
+env/                 # Alternative virtual environment directory
+venv/                # Another alternative virtual environment directory
 
 # Git
-.git
-.gitignore
+.git                 # Git repository metadata
+.gitignore           # Git ignore file
 
-# Тести та покриття
-tests/
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-*.cover
+# Tests and coverage
+tests/               # Test files and directories
+htmlcov/             # HTML coverage reports
+.coverage            # Coverage data file
+.coverage.*          # Additional coverage data files
+coverage.xml         # XML coverage report
+*.cover              # Other coverage-related files
 
-# Документація
-docs/_build/
-docs/_static/
-docs/_templates/
+# Documentation
+docs/_build/         # Built documentation files
+docs/_static/        # Static files for documentation
+docs/_templates/     # Template files for documentation
 
-# Інші файли
-.env
-*.egg-info/
-dist/
-build/
+# Other files
+.env                 # Environment variable files
+*.egg-info/          # Python package metadata
+dist/                # Distribution files
+build/               # Build files
